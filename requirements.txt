@@ -1,0 +1,7 @@
+# requirements.txt
+confluent-kafka
+flask
+opencv-python-headless
+numpy
+pillow
+uuid
