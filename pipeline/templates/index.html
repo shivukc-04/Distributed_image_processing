@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kafka Image Processor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Optional: Custom styling for the arrow if Tailwind defaults aren't enough */
+        .arrow-right::before {
+            content: '';
+            display: block;
+            width: 3rem; /* Adjust size */
+            height: 3rem; /* Adjust size */
+            background-color: transparent;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
+            mask-repeat: no-repeat;
+            mask-position: center;
+            mask-size: contain;
+            background-color: currentColor; /* Inherit color from parent */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0V6.75A2.25 2.25 0 005.25 4.5h-1.5a2.25 2.25 0 00-2.25 2.25v6.75m3 0a1.5 1.5 0 00-3 0m3 0v-3.75m.003-3.75a1.5 1.5 0 011.496-1.496h1.5a1.5 1.5 0 011.496 1.496v3.75m-3 0a1.5 1.5 0 003 0m3 0a1.5 1.5 0 00-3 0m3 0v-6.75A2.25 2.25 0 009 4.5h-1.5a2.25 2.25 0 00-2.25 2.25v6.75m7.5-3v3.75m0-3.75a1.5 1.5 0 013 0m-3 0a1.5 1.5 0 013 0m0 0v-3.75a2.25 2.25 0 00-2.25-2.25h-1.5a2.25 2.25 0 00-2.25 2.25v3.75m3 0a1.5 1.5 0 00-3 0m3 0a1.5 1.5 0 01-3 0m3 0a1.5 1.I 0 00-3 0m3 0a1.5 1.5 0 01-3 0m3 0v-3.75M16.5 4.5a2.25 2.25 0 00-2.25-2.25h-1.5A2.25 2.25 0 0010.5 4.5v3.75m6 0a1.5 1.5 0 00-3 0m3 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0a1.5 1.5 0 01-3 0" />
+                    </svg>
+                    <span class="font-bold text-xl ml-2">Distributed Image Processor</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">1. Upload Image</h2>
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="image" class="block text-sm font-medium text-gray-700 mb-2">Upload Image (Min 1024x1024):</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="file" name="image" id="image" accept="image/*" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <button type="button" id="reset-image-button" class="flex-shrink-0 px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 hidden">
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="processing_type" class="block text-sm font-medium text-gray-700 mb-2">2. Choose Transformation:</label>
+                        <div class="block w-full">
+                            <select name="processing_type" id="processing_type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                
+                                <option value="brightness_increase">Increase Brightness</option>
+                                <option value="contrast_increase">Increase Contrast</option>
+                                <option value="saturation_increase">Increase Saturation (Vibrance)</option>
+                                <option value="gamma_correct">Gamma Correction (Brighten Shadows)</option>
+
+                                <option value="denoise">Denoise (Remove Grain)</option>
+                                <option value="grayscale">Grayscale</option>
+                                <option value="invert">Invert Colors</option>
+
+                                <option value="sepia">Sepia Tone</option>
+                                <option value="blur">Blur</option>
+                                <option value="sharpen">Sharpen</option>
+                                <option value="canny">Edge Detect (Canny)</option>
+                                <option value="threshold">Binary Threshold</option>
+                                <option value="emboss">Emboss</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="submit-button" class="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span id="button-text">Start Processing</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 id="dashboard-title" class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="h-6 w-6 mr-2 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5 0l-4.5 9.75" />
+                    </svg>
+                    <span>Worker Dashboard</span>
+                </h2>
+                <ul id="workers" class="divide-y divide-gray-200">
+                    </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md md:col-span-2">
+                <h2 class="text-2xl font-semibold mb-4">3. Status & Result</h2>
+                <div id="status" class="text-gray-700 font-medium">Ready to accept new jobs.</div>
+                <div id="result" class="mt-4 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const uploadForm = document.getElementById('upload-form');
+    const statusDiv = document.getElementById('status');
+    const resultDiv = document.getElementById('result');
+    const workersList = document.getElementById('workers');
+    const dashboardTitle = document.getElementById('dashboard-title'); // Reference to the title
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const buttonText = document.getElementById('button-text');
+    const imageInput = document.getElementById('image');
+    const resetButtonElement = document.getElementById('reset-image-button'); // Reset button reference
+    const submitButton = document.getElementById('submit-button'); // Reference to the submit button
+
+    let originalImagePreviewUrl = null;
+    let selectedFileName = ''; // Store the file name
+
+    // Function to update the file input's visual state
+    function updateFileInputDisplay() {
+        if (imageInput.files && imageInput.files.length > 0) {
+            selectedFileName = imageInput.files[0].name;
+            resetButtonElement.classList.remove('hidden'); // Show reset button
+        } else {
+            selectedFileName = 'No file selected.';
+            resetButtonElement.classList.add('hidden'); // Hide reset button
+        }
+    }
+
+
+    // Event listener for file input change to create a preview and update display
+    imageInput.addEventListener('change', function(event) {
+        if (event.target.files && event.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalImagePreviewUrl = e.target.result;
+                updateFileInputDisplay();
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        } else {
+            originalImagePreviewUrl = null;
+            updateFileInputDisplay();
+        }
+    });
+
+    // Event listener for the custom reset button
+    resetButtonElement.addEventListener('click', () => {
+        clearFormAndOutput();
+    });
+
+    // Helper function to reset the submit button state
+    function resetSubmitButton() {
+        loadingSpinner.classList.add('hidden');
+        buttonText.textContent = 'Start Processing';
+        submitButton.disabled = false;
+    }
+
+    // Centralized function to clear the form and output
+    function clearFormAndOutput() {
+        imageInput.value = ''; // Clear file input
+        originalImagePreviewUrl = null; // Clear preview URL
+        updateFileInputDisplay(); // Update display (will hide reset button)
+
+        resultDiv.innerHTML = ''; // Clear result images
+        statusDiv.innerHTML = 'Ready to accept new jobs.'; // Reset status message
+        resetSubmitButton(); // Ensure submit button is enabled
+    }
+
+    // Handle form submission
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!imageInput.files || imageInput.files.length === 0) {
+            statusDiv.innerHTML = `<span class="font-bold text-red-600">Error: Please select an image.</span>`;
+            return; // Prevent submission if no file
+        }
+
+        statusDiv.innerHTML = `
+            <div class="flex items-center">
+                <svg class="animate-spin mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Uploading and splitting image...
+            </div>`;
+        resultDiv.innerHTML = ''; // Clear previous results
+        loadingSpinner.classList.remove('hidden');
+        buttonText.textContent = 'Processing...';
+        submitButton.disabled = true; // Disable submit button
+
+        const formData = new FormData(uploadForm);
+        
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                const jobId = data.job_id;
+                statusDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="animate-spin mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing started. <strong>Job ID: ${jobId}</strong>. Waiting for results...
+                    </div>`;
+                pollForJobStatus(jobId);
+            } else {
+                statusDiv.innerHTML = `<span class="font-bold text-red-600">Error: ${data.error}</span>`;
+                resetSubmitButton(); // Only reset submit button on error
+            }
+        } catch (err) {
+            statusDiv.innerHTML = `<span class="font-bold text-red-600">Upload failed: ${err}</span>`;
+            resetSubmitButton(); // Only reset submit button on error
+        }
+    });
+
+    // Poll for job status
+    function pollForJobStatus(jobId) {
+        const interval = setInterval(async () => {
+            try {
+                const response = await fetch(`/status/${jobId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.status === 'completed') {
+                        clearInterval(interval);
+                        statusDiv.innerHTML = `<span class="font-bold text-green-600">Job ${jobId} completed!</span>`;
+                        
+                        // Display both images, KEEPING the original selected state
+                        resultDiv.innerHTML = `
+                            <div class="flex flex-col items-center">
+                                <h3 class="text-xl font-semibold mb-2">Original Image:</h3>
+                                <a href="${originalImagePreviewUrl || '#'}" target="_blank" class="border-2 border-gray-300 rounded-lg inline-block overflow-hidden max-w-sm">
+                                    <img src="${originalImagePreviewUrl}" class="w-full h-auto" alt="Original Image">
+                                </a>
+                            </div>
+                            <div class="flex items-center justify-center text-blue-600 my-4 md:my-0">
+                                <svg class="h-10 w-10 md:h-12 md:w-12 rotate-90 md:rotate-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                                </svg>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <h3 class="text-xl font-semibold mb-2">Processed Image:</h3>
+                                <a href="${data.result_url}" target="_blank" class="border-2 border-blue-500 rounded-lg inline-block overflow-hidden max-w-sm">
+                                    <img src="${data.result_url}" class="w-full h-auto" alt="Processed Image">
+                                </a>
+                            </div>
+                        `;
+                        resetSubmitButton(); // Enable submit button, but keep file selected
+                    } else if (data.status === 'processing' || data.status === 'reconstructing') {
+                        statusDiv.innerHTML = `
+                            <div class="flex items-center">
+                                <svg class="animate-spin mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Job ${jobId} is ${data.status}... 
+                                <strong class="ml-2">(${data.tiles_processed} / ${data.total_tiles} tiles complete)</strong>
+                            </div>`;
+                    } else if (data.status === 'failed') {
+                        clearInterval(interval);
+                        statusDiv.innerHTML = `<span class="font-bold text-red-600">Job ${jobId} failed: ${data.error}</span>`;
+                        resetSubmitButton(); // Enable submit button, but keep file selected
+                    }
+                } else {
+                    clearInterval(interval);
+                    statusDiv.innerHTML = `<span class="font-bold text-red-600">Error checking status: ${data.error}</span>`;
+                    resetSubmitButton(); // Enable submit button, but keep file selected
+                }
+            } catch (err) {
+                clearInterval(interval);
+                statusDiv.innerHTML = `<span class="font-bold text-red-600">Error checking status: ${err}</span>`;
+                resetSubmitButton(); // Enable submit button, but keep file selected
+            }
+        }, 3000); // Poll every 3 seconds
+    }
+
+    // Poll the dashboard - UPDATED
+    function pollDashboard() {
+        setInterval(async () => {
+            try {
+                const response = await fetch('/dashboard');
+                const workers = await response.json();
+                
+                workersList.innerHTML = ''; // Clear current list
+                
+                if (Object.keys(workers).length === 0) {
+                    workersList.innerHTML = '<li class="py-4 text-gray-500">No active workers detected.</li>';
+                    // Update title even when no workers
+                    dashboardTitle.innerHTML = `
+                        <svg class="h-6 w-6 mr-2 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5 0l-4.5 9.75" />
+                        </svg>
+                        <span>Worker Dashboard - 0 Online</span>`;
+                    return;
+                }
+                
+                const now = Date.now() / 1000; // Current time in seconds
+                
+                // Logic to sort workers by status
+                let activeCount = 0;
+                const workerObjects = [];
+                for (const [workerId, lastSeen] of Object.entries(workers)) {
+                    const diff = now - lastSeen;
+                    const isActive = diff < 15; // Inactive if no heartbeat for 15s
+                    
+                    if (isActive) {
+                        activeCount++;
+                    }
+                    
+                    workerObjects.push({
+                        id: workerId,
+                        lastSeen: lastSeen,
+                        isActive: isActive
+                    });
+                }
+                
+                // Update dashboard title with the active count
+                dashboardTitle.innerHTML = `
+                    <svg class="h-6 w-6 mr-2 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5 0l-4.5 9.75" />
+                    </svg>
+                    <span>Worker Dashboard - ${activeCount} Online</span>`;
+
+                // Sort by active first, then by ID
+                workerObjects.sort((a, b) => {
+                    if (a.isActive && !b.isActive) return -1; // a comes first
+                    if (!a.isActive && b.isActive) return 1;  // b comes first
+                    return a.id.localeCompare(b.id); // Otherwise, sort by ID
+                });
+
+                // Loop over the pre-sorted workerObjects array
+                for (const worker of workerObjects) {
+                    const li = document.createElement('li');
+                    li.className = 'py-4 flex justify-between items-center';
+                    li.innerHTML = `
+                        <span class="font-medium">${worker.id}</span>
+                        <span class="text-sm text-gray-500">Last seen: ${new Date(worker.lastSeen * 1000).toLocaleTimeString()}</span>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${worker.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${worker.isActive ? 'Active' : 'Offline'}
+                        </span>`;
+                    workersList.appendChild(li);
+                }
+            } catch (err) {
+                workersList.innerHTML = '<li class="py-4 text-red-500">Error loading dashboard.</li>';
+            }
+        }, 2000); // Refresh every 2 seconds
+    }
+    
+    // Initial display update
+    updateFileInputDisplay();
+    // Start dashboard polling on page load
+    pollDashboard();
+</script>
+</body>
+</html>
