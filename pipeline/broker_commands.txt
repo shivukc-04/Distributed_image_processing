@@ -1,0 +1,9 @@
+cd /opt/kafka/
+nano config/server.properties
+advertised.listeners=PLAINTEXT://172.22.213.64:9092
+bin/zookeeper-server-start.sh config/zookeeper.properties &
+bin/kafka-server-start.sh config/server.properties &
+export KAFKA_BROKER=172.22.213.64:9092
+bin/kafka-topics.sh --create --topic tasks --bootstrap-server $KAFKA_BROKER --partitions 2 --replication-factor 1
+bin/kafka-topics.sh --create --topic results --bootstrap-server $KAFKA_BROKER --partitions 1 --replication-factor 1 --config max.message.bytes=5242880
+bin/kafka-topics.sh --create --topic heartbeats --bootstrap-server $KAFKA_BROKER --partitions 1 --replication-factor 1
