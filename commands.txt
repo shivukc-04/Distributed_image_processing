@@ -1,0 +1,73 @@
+terminal 1:
+# Path: Anywhere in terminal
+redis-server
+
+
+
+terminal 2:
+# 1. Navigate to your Kafka installation folder
+cd /opt/kafka
+
+# 2. Start Zookeeper in the background
+./bin/zookeeper-server-start.sh config/zookeeper.properties &
+sleep 3
+
+# 3. Start Kafka Broker in the background
+./bin/kafka-server-start.sh config/server.properties &
+sleep 5
+
+# 4. Create the required messaging channels (broker_commands.txt)
+./bin/kafka-topics.sh --create --topic tasks --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+./bin/kafka-topics.sh --create --topic results --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+./bin/kafka-topics.sh --create --topic heartbeats --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+# 5. Verify topics are active
+./bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+
+
+
+
+terminal 3:
+# Path: Your pipeline folder
+cd ~/projectbd/156_Project3_BD/pipeline
+
+# Run Master Node
+python3 app.py
+
+
+
+
+terminal 4:
+# Path: Your pipeline folder
+cd ~/projectbd/156_Project3_BD/pipeline
+
+# Run Worker 1
+python3 worker.py --id worker_1
+
+
+
+
+
+
+
+terminal 5:
+# Path: Your pipeline folder
+cd ~/projectbd/156_Project3_BD/pipeline
+
+# Run Worker 2
+python3 worker.py --id worker_2
+
+
+
+
+
+
+
+if topics alreday created:
+cd /opt/kafka
+./bin/zookeeper-server-start.sh config/zookeeper.properties &
+sleep 3
+./bin/kafka-server-start.sh config/server.properties &
+sleep 5
+
+./bin/kafka-topics.sh --list --bootstrap-server localhost:9092
